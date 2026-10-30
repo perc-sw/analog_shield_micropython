@@ -1,0 +1,117 @@
+# On a version tag (v0.1.0-rc.1, v0.1.0, ...):
+#   ci      - the CI workflow (tests, mpy-cross, version check) on the tagged commit
+#   check   - the tag is "v" + __version__ in analog_shield.py, and CHANGELOG.md has a
+#             dated section for it (not "(unreleased)")
+#   build   - analog_shield.py as it is, and compiled for the RP2040 (analog_shield.mpy:
+#             smaller and faster to import), each with its SHA-256
+#   release - creates the GitHub release with those files attached; tags with a
+#             "-" (e.g. v0.1.0-rc.1) are marked as pre-releases; then starts the
+#             Docs workflow so the landing page links to the release
+#
+# To release: date the CHANGELOG.md section, commit, then
+#   git tag v<version> && git push origin v<version>
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+# One run per tag; a re-pushed tag waits for the earlier run
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  check:
+    runs-on: ubuntu-24.04  # pinned; change deliberately
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag, version and changelog match
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' analog_shield.py)
+          echo "tag: $GITHUB_REF_NAME, analog_shield.py: $version"
+          status=0
+          [ "$GITHUB_REF_NAME" = "v$version" ] ||
+            { echo "::error file=analog_shield.py::tag $GITHUB_REF_NAME is not v$version"; status=1; }
+          heading=$(grep -m1 "^## $version\b" CHANGELOG.md || true)
+          [ -n "$heading" ] ||
+            { echo "::error file=CHANGELOG.md::no section for $version"; status=1; }
+          case "$heading" in *nreleased*)
+            echo "::error file=CHANGELOG.md::$version is still (unreleased); add the release date"; status=1 ;;
+          esac
+          exit $status
+
+  build:
+    needs: [ci, check]
+    runs-on: ubuntu-24.04  # pinned; change deliberately
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install mpy-cross
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --quiet -r requirements-dev.txt
+          .venv/bin/mpy-cross --version
+
+      - name: Library files
+        run: |
+          mkdir -p dist
+          cp analog_shield.py dist/
+          .venv/bin/mpy-cross -march=armv6m -o dist/analog_shield.mpy analog_shield.py
+
+      - name: SHA-256 checksums
+        working-directory: dist
+        run: |
+          for f in analog_shield.py analog_shield.mpy; do sha256sum "$f" > "$f.sha256"; done
+          cat ./*.sha256
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: library
+          path: dist/
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-24.04  # pinned; change deliberately
+    permissions:
+      contents: write  # create the release and upload its files
+      actions: write   # start the Docs workflow
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: library
+          path: dist
+
+      # Notes are the tag's CHANGELOG.md section; a re-run replaces the files
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v h="## $version" 'index($0, "## ") == 1 { if (p) exit; p = (index($0, h) == 1); next } p' \
+            CHANGELOG.md > "$RUNNER_TEMP/notes.md"
+          prerelease=""
+          case "$version" in *-*) prerelease="--prerelease" ;; esac
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" dist/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag $prerelease \
+              --title "Analog Shield MicroPython $GITHUB_REF_NAME" \
+              --notes-file "$RUNNER_TEMP/notes.md"
+          fi
+
+      # Redeploy the docs so the landing page's version pill links to this release.
+      # A release made with GITHUB_TOKEN starts no workflows; workflow_dispatch is the exception
+      - name: Redeploy docs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run docs.yml --ref main

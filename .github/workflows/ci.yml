@@ -1,0 +1,78 @@
+# On each push / pull request:
+#   host-tests - PC-side tests: analog_shield.py and every example against a fake machine
+#                module (tests/), with pytest, on top of phyduino.py and arduino.py from
+#                the Phyduino Pico release in PHYDUINO_REF
+#   compile    - analog_shield.py and every example through mpy-cross for the RP2040
+#                (armv6m), which catches syntax MicroPython rejects
+#   versions   - __version__ in analog_shield.py matches the Doxyfile, the docs
+#                landing page and a CHANGELOG.md section
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_call:  # run by release.yml before it publishes
+permissions:
+  contents: read
+
+env:
+  # The phyduino_pico_micropython release the tests run against: the firmware students have
+  PHYDUINO_REF: v0.1.0-rc.1
+
+jobs:
+  host-tests:
+    runs-on: ubuntu-24.04  # pinned; change deliberately (ubuntu-latest moves to 26.04 on 2026-10-19)
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: perc-sw/phyduino_pico_micropython
+          ref: ${{ env.PHYDUINO_REF }}
+          path: phyduino_pico_micropython
+      - name: Install test tools
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --quiet -r requirements-dev.txt
+      - name: PC-side tests
+        env:
+          PHYDUINO_PATH: ${{ github.workspace }}/phyduino_pico_micropython
+        run: .venv/bin/python -m pytest -v tests
+
+  compile:
+    runs-on: ubuntu-24.04  # pinned; change deliberately (ubuntu-latest moves to 26.04 on 2026-10-19)
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install mpy-cross
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install --quiet -r requirements-dev.txt
+          .venv/bin/mpy-cross --version
+      - name: Compile for the RP2040
+        run: |
+          mkdir -p "$RUNNER_TEMP/mpy"
+          for f in analog_shield.py examples/*/*/*/main.py; do
+            echo "$f"
+            out="$(echo "${f%.py}" | tr / _).mpy"  # every example is main.py, so name by path
+            .venv/bin/mpy-cross -march=armv6m -o "$RUNNER_TEMP/mpy/$out" "$f"
+          done
+
+  versions:
+    runs-on: ubuntu-24.04  # pinned; change deliberately (ubuntu-latest moves to 26.04 on 2026-10-19)
+    steps:
+      - uses: actions/checkout@v7
+      - name: Versions match
+        run: |
+          version=$(sed -n 's/^__version__ = "\(.*\)"$/\1/p' analog_shield.py)
+          echo "analog_shield.py: $version"
+          test -n "$version"
+          status=0
+          grep -qx "PROJECT_NUMBER *= *$version" Doxyfile ||
+            { echo "::error file=Doxyfile::PROJECT_NUMBER is not $version"; status=1; }
+          grep -q "page-version\">v$version<" docs/index.html &&
+            ! grep -o 'page-version">[^<]*<' docs/index.html | grep -vqx "page-version\">v$version<" ||
+            { echo "::error file=docs/index.html::a page-version span is not v$version"; status=1; }
+          grep -q "\"version\": \"$version\"" package.json ||
+            { echo "::error file=package.json::version is not $version"; status=1; }
+          grep -q "^## $version\b" CHANGELOG.md ||
+            { echo "::error file=CHANGELOG.md::no section for $version"; status=1; }
+          exit $status

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Compiled MicroPython
+*.mpy
+
+# Release files (.github/workflows/release.yml)
+dist/
+
+# Editors and tools
+.vscode/
+.idea/
+.claude/
+CLAUDE.md
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.swp
+*~
+
+# Development notes and checklists
+notes/
+docs/notes/
+
+# Doxygen output; built and published by .github/workflows/docs.yml
+docs/wiki/

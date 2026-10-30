@@ -1,0 +1,63 @@
+/*
+ * Topics for the API reference. Each function, class and constant in
+ * analog_shield.py joins one with @ingroup in its docstring or ## comment; keep the
+ * table on the main page (extras/doxygen/mainpage.md) in step.
+ * The topics sit under one parent topic, so the Topics list shows which file
+ * they document.
+ */
+
+/**
+@defgroup shield_api analog_shield.py
+@brief The Analog Shield library: `import analog_shield as shield`, on top of phyduino.py.
+
+Copy analog_shield.py to the board next to your main.py. It needs the
+Phyduino Pico firmware, which has phyduino.py built in.
+*/
+
+/**
+@defgroup leds LEDs
+@ingroup shield_api
+@brief The green (D1) and red (D2) LEDs on D6 and D5.
+
+Each LED runs from VIO (JP3) through 1 kOhm to its pin, so it lights when the
+pin is low. `green_led` and `red_led` take care of that: on() drives the pin
+low. The third LED, D3 (red), is a power light on VIO and can't be switched.
+*/
+
+/**
+@defgroup encoder Rotary encoder
+@ingroup shield_api
+@brief The rotary encoder (ENC1) on D3 and D4, and its push switch on D2.
+
+The shield has pull-ups and RC filters on all three lines, so they are inputs
+with no pull of their own and read low when closed. Pin interrupts count the
+turns, so none are missed while your program does something else.
+*/
+
+/**
+@defgroup temperature Temperature and amplifier
+@ingroup shield_api
+@brief The LMT84 temperature sensor (U1) and the TLV2472 amplifier (U2).
+
+The chain, as on the schematic:
+
+| Stage | Signal | Read with |
+|---|---|---|
+| Sensor: LMT84 (JP1 on INT) or J1 (JP1 on EXT) | SENSOR_IN, about 0.18-1.3 V | raw_sensor_volts() on A1; sensor_volts() works it out from the end of the chain |
+| U2A: non-inverting amplifier with an offset | sensor * 4.35 - 0.648 V | amplifier_volts(), amplifier_gain(), amplifier_offset_volts() |
+| U2B: unity-gain low-pass filter, about 10.7 kHz | OPA_OUT, 0-5 V, also on J8 pin 4 | amplifier_volts() |
+| R14/R15 divider, x 0.411 | TEMP_SIG, 0-2.05 V | output_volts() on A3 (JP2 on EXT) or A0 (JP2 on INT) |
+
+temperature() runs the whole chain backwards and converts the sensor voltage
+with the LMT84's datasheet curve. The amplifier spreads about -50 to 150 °C
+over the A3 input's 0-2.048 V.
+*/
+
+/**
+@defgroup pot Potentiometer
+@ingroup shield_api
+@brief The potentiometer (RV1) on A5.
+
+The wiper goes from 0 V to VIO (JP3). A5 is on the Phyduino's MAX11635, which
+reads up to 2.048 V.
+*/

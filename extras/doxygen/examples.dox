@@ -1,0 +1,222 @@
+/*
+ * The Examples landing page, the two pages it leads to, one for each set of
+ * examples in examples/, and the scripts registered for them, with the formatted
+ * description shown above each script's source. Doxygen does not read comments in
+ * the scripts themselves, so keep each block here in step with that script's
+ * header comment, with the lists on its Examples page, with the scripts under
+ * Examples in DoxygenLayout.xml (the side menu) and with the Examples table in
+ * README.md.
+ *
+ * The two sets have the same examples: examples/arduino/ (arduino.py, setup()
+ * and loop()) and examples/phyduino/ (phyduino.py, plain MicroPython), both
+ * with analog_shield.py.
+ *
+ * These pages replace Doxygen's own list (hidden in DoxygenLayout.xml),
+ * which can only show file paths such as arduino/analog_shield/temperature/main.py.
+ * For the same reason each script's page title is set by the hidden example-title
+ * span at the start of its block, which a script in footer.html moves into the title.
+ */
+
+/**
+@page example_scripts Examples
+
+Example scripts for the Analog Shield on a Phyduino Pico. There are two sets
+with the same examples: pick the Phyduino library you want to use with
+analog_shield.py.
+
+| Examples | Uses | Laid out as |
+|---|---|---|
+| @ref examples_arduino "arduino.py examples" | The Arduino-style functions: `from arduino import *`; pinMode(), digitalWrite(), analogRead() (0-1023), analogWrite() (0-255), delay() | An Arduino sketch: setup() runs once, then loop() runs over and over |
+| @ref examples_phyduino "phyduino.py examples" | The Phyduino Pico library: `import phyduino as mcu`; pwm(), analog_averaging(), time.sleep() | A plain MicroPython script: the set-up code at the top runs once, then a `while True:` loop runs over and over |
+
+Both need analog_shield.py on the board: `mpremote cp analog_shield.py :`.
+*/
+
+/**
+@page examples_arduino arduino.py examples
+
+Example scripts for the Analog Shield that use the Arduino-style functions in
+`arduino.py` (`from arduino import *`) with analog_shield.py, in
+`examples/arduino/analog_shield/`. Each script has the shape of an Arduino
+sketch: setup() runs once, then loop() runs over and over. The main() at the
+end of each file starts them; leave it as it is. The same examples written
+with phyduino.py are on the @ref examples_phyduino "phyduino.py examples" page.
+
+With analog_shield.py on the board, run a script from PyCharm, or with
+`mpremote run examples/arduino/analog_shield/<name>/main.py`. To have it run every
+time the board starts, copy its `main.py` to the board:
+`mpremote cp examples/arduino/analog_shield/<name>/main.py :`, then press RESET.
+
+| Example | What it shows |
+|---|---|
+| @ref arduino/analog_shield/blink_leds/main.py "Blink LEDs" | Blinking the green and red LEDs in turn |
+| @ref arduino/analog_shield/encoder_counter/main.py "Encoder Counter" | Counting the encoder's clicks; a press sets it back to 0 |
+| @ref arduino/analog_shield/encoder_led_brightness/main.py "Encoder LED Brightness" | Setting the green LED's brightness with the encoder |
+| @ref arduino/analog_shield/read_pot/main.py "Read Pot" | The potentiometer's reading on A5 |
+| @ref arduino/analog_shield/temperature/main.py "Temperature" | The LMT84's temperature through the amplifier |
+| @ref arduino/analog_shield/amplifier_chain/main.py "Amplifier Chain" | The voltage at each stage of the amplifier |
+*/
+
+/**
+@page examples_phyduino phyduino.py examples
+
+Example scripts for the Analog Shield that use `phyduino.py`
+(`import phyduino as mcu`) with analog_shield.py, in
+`examples/phyduino/analog_shield/`, written the usual MicroPython way: the
+set-up code at the top of the file runs once, then a `while True:` loop runs
+over and over. The same examples written with arduino.py are on the
+@ref examples_arduino "arduino.py examples" page.
+
+With analog_shield.py on the board, run a script from PyCharm, or with
+`mpremote run examples/phyduino/analog_shield/<name>/main.py`. To have it run every
+time the board starts, copy its `main.py` to the board:
+`mpremote cp examples/phyduino/analog_shield/<name>/main.py :`, then press RESET.
+
+| Example | What it shows |
+|---|---|
+| @ref phyduino/analog_shield/blink_leds/main.py "Blink LEDs" | Blinking the green and red LEDs in turn |
+| @ref phyduino/analog_shield/encoder_counter/main.py "Encoder Counter" | Counting the encoder's clicks; a press sets it back to 0 |
+| @ref phyduino/analog_shield/encoder_led_brightness/main.py "Encoder LED Brightness" | Setting the green LED's brightness with the encoder |
+| @ref phyduino/analog_shield/read_pot/main.py "Read Pot" | The potentiometer's reading on A5 |
+| @ref phyduino/analog_shield/temperature/main.py "Temperature" | The LMT84's temperature through the amplifier |
+| @ref phyduino/analog_shield/amplifier_chain/main.py "Amplifier Chain" | The voltage at each stage of the amplifier |
+*/
+
+/**
+ * @example arduino/analog_shield/blink_leds/main.py
+ * @htmlonly<span class="example-title" hidden>Blink LEDs example script (arduino.py)</span>@endhtmlonly
+ * Blinks the shield's green and red LEDs in turn, each for half a second.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V. Each LED lights when its pin is low.
+ *
+ * @par Uses
+ * pinMode(), digitalWrite() on D6 and D5, delay()
+ */
+/**
+ * @example arduino/analog_shield/encoder_counter/main.py
+ * @htmlonly<span class="example-title" hidden>Encoder Counter example script (arduino.py)</span>@endhtmlonly
+ * Prints the rotary encoder's position each time it changes: one count per
+ * click, up clockwise and down anticlockwise. Pressing the knob sets it back to 0.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V.
+ *
+ * @par Uses
+ * encoder(): Encoder.position(), Encoder.set_position(), Encoder.on_press(); delay()
+ */
+/**
+ * @example arduino/analog_shield/encoder_led_brightness/main.py
+ * @htmlonly<span class="example-title" hidden>Encoder LED Brightness example script (arduino.py)</span>@endhtmlonly
+ * Sets the green LED's brightness with the rotary encoder: 20 clicks from off
+ * to full. As the LED lights when D6 is low, the PWM sets the time it is off.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V.
+ *
+ * @par Uses
+ * encoder(): Encoder.position(), Encoder.set_position(); analogWrite(), map(), constrain()
+ */
+/**
+ * @example arduino/analog_shield/read_pot/main.py
+ * @htmlonly<span class="example-title" hidden>Read Pot example script (arduino.py)</span>@endhtmlonly
+ * Prints the potentiometer's (RV1) reading ten times a second. A5 reads up to
+ * 2.048 V, so with VIO at 3.3 V the last third or so of the turn reads full scale.
+ *
+ * @par Uses
+ * analogRead(A5), delay()
+ */
+/**
+ * @example arduino/analog_shield/temperature/main.py
+ * @htmlonly<span class="example-title" hidden>Temperature example script (arduino.py)</span>@endhtmlonly
+ * Prints the temperature from the shield's LMT84 sensor once a second.
+ *
+ * @par Connect
+ * JP4 on 5 V, JP1 on INT and JP2 on EXT (A3). With JP2 on INT, use
+ * set_output_pin("A0").
+ *
+ * @par Uses
+ * set_output_pin(), temperature(); delay()
+ */
+/**
+ * @example arduino/analog_shield/amplifier_chain/main.py
+ * @htmlonly<span class="example-title" hidden>Amplifier Chain example script (arduino.py)</span>@endhtmlonly
+ * Prints the amplifier's gain and offset, then once a second the sensor's
+ * voltage read directly on A1, the same worked out from the amplifier's output,
+ * the amplifier's output (also on J8 pin 4) and the divided signal on A3.
+ *
+ * @par Connect
+ * JP4 on 5 V, JP1 on INT and JP2 on EXT. A meter on J8 pin 4 should match the opamp column.
+ *
+ * @par Uses
+ * raw_sensor_volts(), sensor_volts(), amplifier_volts(), output_volts(), amplifier_gain(), amplifier_offset_volts()
+ */
+/**
+ * @example phyduino/analog_shield/blink_leds/main.py
+ * @htmlonly<span class="example-title" hidden>Blink LEDs example script (phyduino.py)</span>@endhtmlonly
+ * Blinks the shield's green and red LEDs in turn, each for half a second.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V. Each LED lights when its pin is low.
+ *
+ * @par Uses
+ * `green_led`, `red_led`: Led.on(), Led.off()
+ */
+/**
+ * @example phyduino/analog_shield/encoder_counter/main.py
+ * @htmlonly<span class="example-title" hidden>Encoder Counter example script (phyduino.py)</span>@endhtmlonly
+ * Prints the rotary encoder's position each time it changes: one count per
+ * click, up clockwise and down anticlockwise. Pressing the knob sets it back to 0.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V.
+ *
+ * @par Uses
+ * encoder(): Encoder.position(), Encoder.set_position(), Encoder.on_press()
+ */
+/**
+ * @example phyduino/analog_shield/encoder_led_brightness/main.py
+ * @htmlonly<span class="example-title" hidden>Encoder LED Brightness example script (phyduino.py)</span>@endhtmlonly
+ * Sets the green LED's brightness with the rotary encoder: 20 clicks from off
+ * to full. As the LED lights when D6 is low, the PWM sets the time it is off.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V.
+ *
+ * @par Uses
+ * encoder(): Encoder.position(), Encoder.set_position(); mcu.pwm()
+ */
+/**
+ * @example phyduino/analog_shield/read_pot/main.py
+ * @htmlonly<span class="example-title" hidden>Read Pot example script (phyduino.py)</span>@endhtmlonly
+ * Prints the potentiometer's (RV1) reading ten times a second. A5 reads up to
+ * 2.048 V, so with VIO at 3.3 V the last third or so of the turn reads full scale.
+ *
+ * @par Uses
+ * pot_volts()
+ */
+/**
+ * @example phyduino/analog_shield/temperature/main.py
+ * @htmlonly<span class="example-title" hidden>Temperature example script (phyduino.py)</span>@endhtmlonly
+ * Prints the temperature from the shield's LMT84 sensor once a second.
+ *
+ * @par Connect
+ * JP4 on 5 V, JP1 on INT and JP2 on EXT (A3). With JP2 on INT, use
+ * set_output_pin("A0").
+ *
+ * @par Uses
+ * set_output_pin(), temperature(); mcu.analog_averaging()
+ */
+/**
+ * @example phyduino/analog_shield/amplifier_chain/main.py
+ * @htmlonly<span class="example-title" hidden>Amplifier Chain example script (phyduino.py)</span>@endhtmlonly
+ * Prints the amplifier's gain and offset, then once a second the sensor's
+ * voltage read directly on A1, the same worked out from the amplifier's output,
+ * the amplifier's output (also on J8 pin 4) and the divided signal on A3.
+ *
+ * @par Connect
+ * JP4 on 5 V, JP1 on INT and JP2 on EXT. A meter on J8 pin 4 should match the opamp column.
+ *
+ * @par Uses
+ * raw_sensor_volts(), sensor_volts(), amplifier_volts(), output_volts(), amplifier_gain(), amplifier_offset_volts(); mcu.analog_averaging()
+ */

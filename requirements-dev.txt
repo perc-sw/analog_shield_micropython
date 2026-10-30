@@ -1,0 +1,4 @@
+# Host tests and tools (not needed on the board)
+pytest>=8
+mpy-cross
+mpremote

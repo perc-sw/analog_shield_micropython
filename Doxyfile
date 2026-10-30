@@ -1,0 +1,44 @@
+# Doxyfile 1.17.0
+# API reference for analog_shield.py, written to docs/wiki/ (git-ignored; published
+# by .github/workflows/docs.yml). Run "doxygen" in the repository root.
+# Only the settings that differ from Doxygen's defaults are listed.
+
+PROJECT_NAME           = "Analog Shield MicroPython"
+PROJECT_NUMBER         = 0.1.0-rc.1
+PROJECT_BRIEF          = "Introduction to Electronics - Analog Shield library for the Phyduino Pico"
+OUTPUT_DIRECTORY       = docs
+HTML_OUTPUT            = wiki
+INPUT                  = analog_shield.py \
+                         extras/doxygen/mainpage.md \
+                         extras/doxygen/api.dox \
+                         extras/doxygen/examples.dox
+USE_MDFILE_AS_MAINPAGE = extras/doxygen/mainpage.md
+EXAMPLE_PATH           = examples
+EXAMPLE_RECURSIVE      = YES
+FULL_PATH_NAMES        = NO
+
+# Python: docstrings hold Doxygen commands (@brief, @param, ...)
+OPTIMIZE_OUTPUT_JAVA   = YES
+PYTHON_DOCSTRING       = NO
+# Private names (leading underscore), including __init__ and __version__
+EXCLUDE_SYMBOLS        = _*
+HIDE_SCOPE_NAMES       = YES
+SHOW_NAMESPACES        = NO
+SORT_MEMBER_DOCS       = NO
+
+EXTRACT_PRIVATE        = NO
+WARN_IF_UNDOCUMENTED   = YES
+WARN_NO_PARAMDOC       = YES
+GENERATE_HTML          = YES
+LAYOUT_FILE            = extras/doxygen/DoxygenLayout.xml
+HTML_HEADER            = extras/doxygen/header.html
+HTML_FOOTER            = extras/doxygen/footer.html
+HTML_EXTRA_STYLESHEET  = extras/doxygen/uoft_doxygen.css
+HTML_EXTRA_FILES       = docs/images/uoft_physics_plrs_logo.png
+HTML_COLORSTYLE        = LIGHT
+GENERATE_TREEVIEW      = YES
+GENERATE_LATEX         = NO
+GENERATE_RTF           = NO
+GENERATE_MAN           = NO
+GENERATE_XML           = NO
+GENERATE_DOCBOOK       = NO
