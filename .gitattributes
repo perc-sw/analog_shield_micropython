@@ -1,0 +1,4 @@
+# Text files are stored with LF endings: the workflows parse them on Linux
+# (e.g. __version__ in analog_shield.py), where a CR at the end of a line breaks the match
+* text=auto eol=lf
+*.png binary
