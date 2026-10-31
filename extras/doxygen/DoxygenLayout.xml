@@ -6,7 +6,7 @@
     (arduino/analog_shield/temperature/main.py). An Examples group
     replaces it, as the last entry, where the hidden list was: it opens the
     Examples landing page in extras/doxygen/examples.dox, with the two pages
-    it leads to (arduino.py and phyduino.py)
+    it leads to (arduino.py and phyduino.py, and the standalone examples)
     and each page's scripts under it. Keep those
     lists in step with the Examples pages.
   - Related pages are hidden: the only ones are those Examples pages.
@@ -69,6 +69,10 @@
         <tab type="user" visible="yes" url="@ref phyduino/analog_shield/read_pot/main.py" title="Read Pot"/>
         <tab type="user" visible="yes" url="@ref phyduino/analog_shield/temperature/main.py" title="Temperature"/>
         <tab type="user" visible="yes" url="@ref phyduino/analog_shield/amplifier_chain/main.py" title="Amplifier Chain"/>
+      </tab>
+      <tab type="usergroup" visible="yes" url="@ref examples_standalone" title="Standalone">
+        <tab type="user" visible="yes" url="@ref demo/main.py" title="Demo"/>
+        <tab type="user" visible="yes" url="@ref plotter/main.py" title="Plotter"/>
       </tab>
     </tab>
   </navindex>

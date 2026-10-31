@@ -83,7 +83,7 @@ Then run your own `main.py` as on the Phyduino Pico (`mpremote run main.py`, or 
 | Red LED (D2) | D5 | On when low: `red_led` |
 | Encoder A, B (ENC1) | D3, D4 | Pull-ups and RC filters on the shield: `encoder()` |
 | Encoder push switch | D2 | Low while pressed: `encoder().pressed()` |
-| Amplifier output (TEMP_SIG) | A3 (JP2 on EXT) or A0 (JP2 on INT) | 0-2.05 V: `output_volts()` |
+| Amplifier output (TEMP_SIG) | A3 (JP2 on EXT) or A0 (JP2 on INT) | 0-2.05 V (0-1.97 V on A3): `output_volts()` |
 | Sensor voltage (SENSOR_IN) | A1 | Before the amplifier: `raw_sensor_volts()` |
 | Potentiometer (RV1) | A5 | 0 V to VIO: `pot_volts()` |
 | Sensor connector J2 | A4 | No functions here; `mcu.analog_volts("A4")` |
@@ -115,10 +115,13 @@ For steadier analogue readings, call `mcu.analog_averaging(16)` from `phyduino.p
 
 ```
 LMT84 ─JP1─ SENSOR_IN (A1) ─► U2A: × 4.35 − 0.648 V ─► U2B: 10.7 kHz low-pass ─► OPA_OUT (J8-4)
-                                                                                     │ R14/R15 × 0.411
+                                                                                     │ R14/R15 × 0.411 (× 0.395 on A3)
                                                                                      ▼
                                                                          TEMP_SIG ─JP2─ A3 or A0
 ```
+
+On A3 the Phyduino Pico's 100 kΩ pulldown (R49) is in parallel with R15, so A3 reads about 4 % lower
+than A0; the library allows for it, so both give the same temperature.
 
 The offset comes from the R1/R2 divider on the +5V rail, so it changes with the rail: measure it
 and call `set_supply_volts()` for the best accuracy. The chain spreads about −50 to 150 °C over
@@ -146,6 +149,13 @@ board so it runs at start-up.
 | `analog_shield/read_pot/` | The potentiometer's reading on A5 |
 | `analog_shield/temperature/` | The LMT84's temperature through the amplifier |
 | `analog_shield/amplifier_chain/` | The voltage at each stage of the amplifier |
+
+There are also two standalone examples, written with `phyduino.py` only (no `arduino/` copy):
+
+| Example | Shows |
+|---|---|
+| `examples/demo/` | The temperature once a second, with the green LED lit while it runs |
+| `examples/plotter/` | The shield's readings as `label:value` pairs for a serial plotter; the knob selects A0 or A3 |
 
 ## Development
 

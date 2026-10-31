@@ -7,7 +7,7 @@ First version.
 - `analog_shield.py`: one-file library for the Analog Shield (Rev C) on a Phyduino Pico, on top of the `phyduino.py` built into the Phyduino Pico firmware.
   - `green_led` and `red_led` (D6, D5), which light when their pin is low: `on()`, `off()`, `toggle()`, `value()`.
   - `encoder()`: the rotary encoder on D3/D4, counted by pin interrupts, with `position()` (one per click), `steps()`, `set_position()`, and the push switch on D2 with `pressed()` and `on_press()` (debounced, run with `micropython.schedule()`).
-  - `temperature()`: the LMT84 through the TLV2472 amplifier, with each stage of the chain in volts: `raw_sensor_volts()` (A1), `sensor_volts()`, `amplifier_volts()`, `output_volts()` (A3 or A0, chosen with `set_output_pin()` to match JP2), plus `temperature_from_volts()`, `amplifier_gain()`, `amplifier_offset_volts()` and `set_supply_volts()` for the +5V rail.
+  - `temperature()`: the LMT84 through the TLV2472 amplifier, with each stage of the chain in volts: `raw_sensor_volts()` (A1), `sensor_volts()`, `amplifier_volts()`, `output_volts()` (A3 or A0, chosen with `set_output_pin()` to match JP2), plus `temperature_from_volts()`, `amplifier_gain()`, `amplifier_offset_volts()` and `set_supply_volts()` for the +5V rail. Allows for the Phyduino Pico's 100 kOhm pulldown on A3 (R49), so A3 and A0 give the same temperature.
   - `pot_volts()`: the potentiometer on A5.
   - `version()`: the library version, as in `__version__`.
 - `package.json`, so `mpremote mip install github:perc-sw/analog_shield_micropython` installs it. Each GitHub release also has `analog_shield.py` and a compiled `analog_shield.mpy` attached, with their SHA-256.

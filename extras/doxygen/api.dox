@@ -46,7 +46,7 @@ The chain, as on the schematic:
 | Sensor: LMT84 (JP1 on INT) or J1 (JP1 on EXT) | SENSOR_IN, about 0.18-1.3 V | raw_sensor_volts() on A1; sensor_volts() works it out from the end of the chain |
 | U2A: non-inverting amplifier with an offset | sensor * 4.35 - 0.648 V | amplifier_volts(), amplifier_gain(), amplifier_offset_volts() |
 | U2B: unity-gain low-pass filter, about 10.7 kHz | OPA_OUT, 0-5 V, also on J8 pin 4 | amplifier_volts() |
-| R14/R15 divider, x 0.411 | TEMP_SIG, 0-2.05 V | output_volts() on A3 (JP2 on EXT) or A0 (JP2 on INT) |
+| R14/R15 divider, x 0.411 on A0; x 0.395 on A3, with the Phyduino Pico's 100 kOhm pulldown (R49) | TEMP_SIG, 0-2.05 V | output_volts() on A3 (JP2 on EXT) or A0 (JP2 on INT) |
 
 temperature() runs the whole chain backwards and converts the sensor voltage
 with the LMT84's datasheet curve. The amplifier spreads about -50 to 150 °C

@@ -14,6 +14,7 @@ import pytest
 EXAMPLES_DIR = pathlib.Path(__file__).parent.parent / "examples"
 ARDUINO = sorted(EXAMPLES_DIR.glob("arduino/*/*/main.py"))  # examples/arduino/<category>/<name>/main.py
 PHYDUINO = sorted(EXAMPLES_DIR.glob("phyduino/*/*/main.py"))  # examples/phyduino/<category>/<name>/main.py
+STANDALONE = sorted(EXAMPLES_DIR.glob("*/main.py"))  # examples/<name>/main.py: phyduino style, no Arduino copy
 LOOPS = 20
 LINES = 20_000
 
@@ -24,7 +25,7 @@ def _ids(path):
 
 def test_examples_are_main_py_in_their_own_folder():
     scripts = sorted(EXAMPLES_DIR.rglob("*.py"))
-    assert scripts == sorted(ARDUINO + PHYDUINO)  # MicroPython runs main.py at start-up, so no other names
+    assert scripts == sorted(ARDUINO + PHYDUINO + STANDALONE)  # MicroPython runs main.py at start-up, so no other names
     assert len(ARDUINO) == len(PHYDUINO) == 6
 
 
@@ -55,7 +56,7 @@ class _Stop(Exception):
     """Raised once a phyduino example has run LINES lines."""
 
 
-@pytest.mark.parametrize("path", PHYDUINO, ids=_ids)
+@pytest.mark.parametrize("path", PHYDUINO + STANDALONE, ids=_ids)
 def test_phyduino_example_runs(hardware, path):
     source = path.read_text(encoding="utf-8")
     assert "arduino" not in source and "def setup" not in source and "def loop" not in source

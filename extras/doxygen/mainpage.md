@@ -52,4 +52,6 @@ external ADC did not respond), with a message saying what to do.
 The @ref example_scripts page lets you choose between the two sets of example
 scripts in `examples/`, which have the same examples:
 @ref examples_arduino (`examples/arduino/`, setup() and loop()) and
-@ref examples_phyduino (`examples/phyduino/`, plain MicroPython).
+@ref examples_phyduino (`examples/phyduino/`, plain MicroPython). The
+@ref examples_standalone (`examples/demo/` and `examples/plotter/`) are
+phyduino.py scripts with no arduino.py copy.

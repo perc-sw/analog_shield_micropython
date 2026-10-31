@@ -122,7 +122,7 @@ red_led = Led("D5")
 # state (both lines changed at once, e.g. contact bounce).
 _TRANSITIONS = (0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0)
 _STEPS_PER_DETENT = const(4)  # PEC11L: one full A/B cycle per click
-_PRESS_DEBOUNCE_MS = const(50)  # the RC filter only covers about 50 us
+_PRESS_DEBOUNCE_MS = const(100)  # the RC filter only covers about 50 us
 
 
 class Encoder:
@@ -147,7 +147,7 @@ class Encoder:
         self._state = (self._a.value() << 1) | self._b.value()
         self._steps = 0
         self._callback = None
-        self._last_press = None
+        self._last_edge = None
         self._run_callback_ref = self._run_callback  # made once: the interrupt can't allocate
         # Hard interrupts, so each edge is read straight away: a late read can
         # miss a state and lose a step
@@ -162,11 +162,15 @@ class Encoder:
         self._state = state
 
     def _press(self, _pin):
+        # Runs on both edges, so the bounce when the knob is let go also
+        # restarts the quiet time and can't count as a press
         now = time.ticks_ms()
-        if self._last_press is not None and \
-                time.ticks_diff(now, self._last_press) < _PRESS_DEBOUNCE_MS:
-            return  # switch bounce after a press already counted
-        self._last_press = now
+        last = self._last_edge
+        self._last_edge = now
+        if last is not None and time.ticks_diff(now, last) < _PRESS_DEBOUNCE_MS:
+            return  # switch bounce: another edge too soon
+        if self._switch.value() != 0:
+            return  # released, not pressed
         try:
             micropython.schedule(self._run_callback_ref, 0)
         except RuntimeError:
@@ -210,7 +214,8 @@ class Encoder:
 
         The function runs soon after the press, between lines of your
         program (MicroPython's micropython.schedule()), and takes no arguments.
-        Presses within 50 ms of the last one are taken as switch bounce.
+        A press within 100 ms of the switch last changing, pressed or
+        released, is taken as switch bounce.
 
         @param callback A function, or None to stop.
 
@@ -226,7 +231,7 @@ class Encoder:
         if callback is None:
             self._switch.irq(handler=None)
         else:
-            self._switch.irq(handler=self._press, trigger=Pin.IRQ_FALLING)
+            self._switch.irq(handler=self._press, trigger=Pin.IRQ_RISING | Pin.IRQ_FALLING)
 
 
 _encoder = None
@@ -265,7 +270,14 @@ _R4 = 35_700  # feedback
 # down to the ADC's range.
 _R14 = 10_000  # amplifier output to TEMP_SIG
 _R15 = 6_980  # TEMP_SIG to GND
-_DIVIDER = _R15 / (_R14 + _R15)  # 0.41107
+# The Phyduino Pico has a pulldown on A3 (R49) and none on A0. On A3 it is in
+# parallel with R15 and lowers the reading by about 4 % (5 degrees C).
+_R_A3_PULLDOWN = 100_000
+_R15_ON_A3 = _R15 * _R_A3_PULLDOWN / (_R15 + _R_A3_PULLDOWN)
+_DIVIDERS = {
+    "A3": _R15_ON_A3 / (_R14 + _R15_ON_A3),  # 0.39484
+    "A0": _R15 / (_R14 + _R15),  # 0.41107
+}
 
 # LMT84 transfer function (TI datasheet, equation 1):
 # mV = 870.6 - 5.506 * (T - 30) - 0.00176 * (T - 30) ** 2
@@ -342,9 +354,10 @@ def amplifier_offset_volts():
 def output_volts():
     """@brief Reads the signal at the end of the chain (TEMP_SIG) on A3 or A0.
 
-    This is the amplifier's output after the R14/R15 divider, about 0-2.05 V.
-    Set the pin with set_output_pin(). Use mcu.analog_averaging() for steadier
-    readings.
+    This is the amplifier's output after the R14/R15 divider, about 0-2.05 V
+    on A0. On A3 it is about 4 % lower (up to 1.97 V), as the Phyduino Pico's
+    100 kOhm pulldown on A3 (R49) also loads the divider. Set the pin with
+    set_output_pin(). Use mcu.analog_averaging() for steadier readings.
 
     @return Volts (a float).
     @exception OSError The Phyduino's external ADC did not respond (A3).
@@ -356,13 +369,14 @@ def output_volts():
 def amplifier_volts():
     """@brief Works out the amplifier's output (OPA_OUT), before the R14/R15 divider.
 
-    Also on J8 pin 4, to check with a meter.
+    Also on J8 pin 4, to check with a meter. Allows for the Phyduino Pico's
+    pulldown on A3, so A3 and A0 give the same result.
 
     @return Volts, 0-5 V (a float).
     @exception OSError The Phyduino's external ADC did not respond (A3).
     @ingroup temperature
     """
-    return output_volts() / _DIVIDER
+    return output_volts() / _DIVIDERS[_output_pin]
 
 
 def sensor_volts():

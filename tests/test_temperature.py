@@ -3,18 +3,19 @@
 import pytest
 
 # Worked out by hand from the Rev C schematic, independent of analog_shield.py:
-# U2A gain 4.3509 and offset 0.6481 V (rail at 5 V), then R14/R15 = 0.41107, so
-# TEMP_SIG = 1.78855 * Vs - 0.26641.
+# U2A gain 4.3509 and offset 0.6481 V (rail at 5 V), then R14/R15 = 0.41107 on A0,
+# so TEMP_SIG = 1.78855 * Vs - 0.26641. On A3 the Phyduino Pico's R49 (100 kOhm to
+# GND, phyduino_pico.kicad_pcb) is in parallel with R15: 6.5246k / 16.5246k = 0.39484.
 GAIN = 4.3509
 OFFSET = 0.6481
-DIVIDER = 0.41107
+DIVIDER = {"A0": 0.41107, "A3": 0.39484}
 
 # LMT84 datasheet table 3: degrees C -> mV
 LMT84_TABLE = [(-40, 1247), (0, 1034), (25, 898), (50, 760), (100, 476), (150, 183)]
 
 
-def temp_sig(sensor_v):
-    return (GAIN * sensor_v - OFFSET) * DIVIDER
+def temp_sig(sensor_v, pin):
+    return (GAIN * sensor_v - OFFSET) * DIVIDER[pin]
 
 
 def ext_spi(fake):
@@ -46,14 +47,14 @@ def test_temperature_from_volts_matches_datasheet_table(shield, celsius, mv):
 
 @pytest.mark.parametrize("celsius,mv", LMT84_TABLE[1:4])
 def test_temperature_on_a3(shield, pd, fake, celsius, mv):
-    set_a3_a5(pd, fake, temp_sig(mv / 1000))
+    set_a3_a5(pd, fake, temp_sig(mv / 1000, "A3"))
     assert shield.temperature() == pytest.approx(celsius, abs=0.5)
 
 
 @pytest.mark.parametrize("celsius,mv", LMT84_TABLE[1:4])
 def test_temperature_on_a0(shield, fake, celsius, mv):
     shield.set_output_pin("a0")
-    set_a0_a2(fake, 26, temp_sig(mv / 1000))
+    set_a0_a2(fake, 26, temp_sig(mv / 1000, "A0"))
     assert shield.temperature() == pytest.approx(celsius, abs=0.5)
 
 
@@ -61,9 +62,18 @@ def test_each_stage_of_the_chain(shield, pd, fake):
     set_a3_a5(pd, fake, 1.2)
     assert shield.output_volts() == pytest.approx(1.2, abs=0.001)
     set_a3_a5(pd, fake, 1.2)
-    assert shield.amplifier_volts() == pytest.approx(1.2 / DIVIDER, abs=0.002)
+    assert shield.amplifier_volts() == pytest.approx(1.2 / DIVIDER["A3"], abs=0.002)
     set_a3_a5(pd, fake, 1.2)
-    assert shield.sensor_volts() == pytest.approx((1.2 / DIVIDER + OFFSET) / GAIN, abs=0.001)
+    assert shield.sensor_volts() == pytest.approx((1.2 / DIVIDER["A3"] + OFFSET) / GAIN, abs=0.001)
+
+
+def test_a3_and_a0_agree_on_the_same_amplifier_output(shield, pd, fake):
+    opa_out = 3.26  # about 25 degrees C
+    set_a3_a5(pd, fake, opa_out * DIVIDER["A3"])  # what A3 reads, with the Phyduino's pulldown
+    on_a3 = shield.temperature()
+    shield.set_output_pin("A0")
+    set_a0_a2(fake, 26, opa_out * DIVIDER["A0"])
+    assert shield.temperature() == pytest.approx(on_a3, abs=0.2)
 
 
 def test_output_is_read_on_a3_by_default(shield, pd, fake):

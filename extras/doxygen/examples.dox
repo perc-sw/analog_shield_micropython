@@ -9,7 +9,8 @@
  *
  * The two sets have the same examples: examples/arduino/ (arduino.py, setup()
  * and loop()) and examples/phyduino/ (phyduino.py, plain MicroPython), both
- * with analog_shield.py.
+ * with analog_shield.py. The standalone examples, examples/<name>/main.py, are
+ * phyduino.py scripts with no arduino.py copy, on a page of their own.
  *
  * These pages replace Doxygen's own list (hidden in DoxygenLayout.xml),
  * which can only show file paths such as arduino/analog_shield/temperature/main.py.
@@ -30,6 +31,9 @@ analog_shield.py.
 | @ref examples_phyduino "phyduino.py examples" | The Phyduino Pico library: `import phyduino as mcu`; pwm(), analog_averaging(), time.sleep() | A plain MicroPython script: the set-up code at the top runs once, then a `while True:` loop runs over and over |
 
 Both need analog_shield.py on the board: `mpremote cp analog_shield.py :`.
+
+There are also two @ref examples_standalone "standalone examples", written with
+phyduino.py only, that use more of the shield at once.
 */
 
 /**
@@ -80,6 +84,25 @@ time the board starts, copy its `main.py` to the board:
 | @ref phyduino/analog_shield/read_pot/main.py "Read Pot" | The potentiometer's reading on A5 |
 | @ref phyduino/analog_shield/temperature/main.py "Temperature" | The LMT84's temperature through the amplifier |
 | @ref phyduino/analog_shield/amplifier_chain/main.py "Amplifier Chain" | The voltage at each stage of the amplifier |
+*/
+
+/**
+@page examples_standalone Standalone examples
+
+Example scripts for the Analog Shield that use `phyduino.py`
+(`import phyduino as mcu`) with analog_shield.py, in `examples/<name>/`. They
+are written like the @ref examples_phyduino "phyduino.py examples", with a
+`while True:` loop, but have no arduino.py copy.
+
+With analog_shield.py on the board, run a script from PyCharm, or with
+`mpremote run examples/<name>/main.py`. To have it run every time the board
+starts, copy its `main.py` to the board:
+`mpremote cp examples/<name>/main.py :main.py`, then press RESET.
+
+| Example | What it shows |
+|---|---|
+| @ref demo/main.py "Demo" | The temperature once a second, with the green LED lit while it runs |
+| @ref plotter/main.py "Plotter" | The shield's readings as label:value pairs for a serial plotter; the knob selects A0 or A3 |
 */
 
 /**
@@ -219,4 +242,39 @@ time the board starts, copy its `main.py` to the board:
  *
  * @par Uses
  * raw_sensor_volts(), sensor_volts(), amplifier_volts(), output_volts(), amplifier_gain(), amplifier_offset_volts(); mcu.analog_averaging()
+ */
+/**
+ * @example demo/main.py
+ * @htmlonly<span class="example-title" hidden>Demo example script</span>@endhtmlonly
+ * Prints the temperature from the shield's LMT84 sensor once a second, with the
+ * green LED lit while it runs. The LED goes off again when the script is stopped.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V, JP4 on 5 V, JP1 on INT and JP2 on EXT (A3). With JP2 on
+ * INT, use set_output_pin("A0").
+ *
+ * @par Uses
+ * set_output_pin(), temperature(), `green_led`; mcu.analog_averaging()
+ */
+/**
+ * @example plotter/main.py
+ * @htmlonly<span class="example-title" hidden>Plotter example script</span>@endhtmlonly
+ * Prints the shield's readings four times a second as label:value pairs, for a
+ * serial plotter: the temperature from the raw sensor (A1) and through the
+ * amplifier, the encoder position, the selected channel (0 or 3), the pot and
+ * VBUS voltages. The Phyduino's LED blinks while it runs.
+ *
+ * Pressing the knob switches between A0 and A3. It only tells the code where
+ * JP2 is, so move JP2 to match (A3 is JP2 on EXT). Green LED: A0, red LED: A3,
+ * both on: the A3 ADC did not respond (until the next press). The two
+ * temperatures should agree to within about 3 &deg;C; the raw sensor line is
+ * coarser and noisier.
+ *
+ * @par Connect
+ * JP3 (VIO) on 3.3 V, JP4 on 5 V, JP1 on INT and JP2 on INT (A0) to start.
+ *
+ * @par Uses
+ * encoder(): Encoder.position(), Encoder.on_press(); set_output_pin(),
+ * temperature(), temperature_from_volts(), raw_sensor_volts(), pot_volts(),
+ * `green_led`, `red_led`; mcu.Led, mcu.vbus_volts()
  */

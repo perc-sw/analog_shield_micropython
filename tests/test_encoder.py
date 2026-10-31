@@ -96,10 +96,11 @@ def test_pressed_reads_the_switch(knob, fake):
 def test_on_press_calls_back_once_per_press(knob, fake, fake_clock):
     presses = []
     knob.on_press(lambda: presses.append(1))
-    assert fake.Pin.handlers[SW][2] == fake.Pin.IRQ_FALLING
+    assert fake.Pin.handlers[SW][2] == fake.Pin.IRQ_RISING | fake.Pin.IRQ_FALLING
     fake.Pin.drive(SW, 0)
     assert presses == [1]
-    fake.Pin.drive(SW, 1)  # release: rising edge, ignored
+    fake_clock.sleep_ms(200)
+    fake.Pin.drive(SW, 1)  # release: rising edge, not a press
     assert presses == [1]
 
 
@@ -111,10 +112,33 @@ def test_on_press_ignores_bounce(knob, fake, fake_clock):
     fake.Pin.drive(SW, 1)
     fake.Pin.drive(SW, 0)  # 5 ms later: bounce
     assert len(presses) == 1
-    fake_clock.sleep_ms(100)
-    fake.Pin.drive(SW, 1)
+    fake_clock.sleep_ms(200)
+    fake.Pin.drive(SW, 1)  # released
+    fake_clock.sleep_ms(200)
     fake.Pin.drive(SW, 0)  # a second press
     assert len(presses) == 2
+
+
+def test_on_press_ignores_bounce_on_release(knob, fake, fake_clock):
+    presses = []
+    knob.on_press(lambda: presses.append(1))
+    fake.Pin.drive(SW, 0)
+    fake_clock.sleep_ms(300)  # held longer than the debounce time
+    for level in (1, 0, 1, 0, 1):  # contacts chatter as the knob is let go
+        fake.Pin.drive(SW, level)
+        fake_clock.sleep_ms(2)
+    assert len(presses) == 1
+
+
+def test_on_press_misses_a_press_too_soon_after_release(knob, fake, fake_clock):
+    presses = []
+    knob.on_press(lambda: presses.append(1))
+    fake.Pin.drive(SW, 0)
+    fake_clock.sleep_ms(200)
+    fake.Pin.drive(SW, 1)
+    fake_clock.sleep_ms(50)
+    fake.Pin.drive(SW, 0)  # within 100 ms of the release: taken as bounce
+    assert len(presses) == 1
 
 
 def test_on_press_none_stops(knob, fake):
