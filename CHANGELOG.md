@@ -1,8 +1,14 @@
 # Changelog
 
-## 0.1.0-rc.1 (unreleased)
+## 0.1.0-rc.1 (2026-11-02)
 
-First version.
+First release candidate of `analog_shield.py`, a one-file MicroPython library for the
+Analog Shield (Rev C) on a Phyduino Pico, written for the Department of Physics
+"Introduction to Electronics" course. It gives names to the shield's LEDs, rotary encoder
+and push switch, potentiometer, and LMT84 temperature sensor, with the voltage at each
+stage of the amplifier. Download `analog_shield.py`, or the smaller, compiled
+`analog_shield.mpy`, from the files below and copy it to the board, or install it with
+`mpremote mip install github:perc-sw/analog_shield_micropython`.
 
 - `analog_shield.py`: one-file library for the Analog Shield (Rev C) on a Phyduino Pico, on top of the `phyduino.py` built into the Phyduino Pico firmware.
   - `green_led` and `red_led` (D6, D5), which light when their pin is low: `on()`, `off()`, `toggle()`, `value()`.
@@ -12,6 +18,7 @@ First version.
   - `version()`: the library version, as in `__version__`.
 - `package.json`, so `mpremote mip install github:perc-sw/analog_shield_micropython` installs it. Each GitHub release also has `analog_shield.py` and a compiled `analog_shield.mpy` attached, with their SHA-256.
 - 6 examples in two sets, `examples/arduino/analog_shield/` (`setup()` and `loop()`, with `arduino.py`) and `examples/phyduino/analog_shield/` (plain MicroPython, with `phyduino.py`): `blink_leds`, `encoder_counter`, `encoder_led_brightness`, `read_pot`, `temperature` and `amplifier_chain`.
+- 2 more examples: `demo` (the temperature on A3 once a second, with the green LED lit while it runs) and `plotter` (all the shield's readings as `label:value` pairs for a serial plotter, with the knob switching between A0 and A3).
 - Host tests (pytest) with a fake `machine` module, against `phyduino.py` from phyduino_pico_micropython v0.1.0-rc.1.
 - Documentation site (`docs/`) with a Doxygen API reference generated from the docstrings, published to GitHub Pages.
 
