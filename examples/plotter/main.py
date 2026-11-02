@@ -32,7 +32,7 @@ Knob = shield.encoder()
 
 shield.green_led.on()
 shield.red_led.off()
-shield.set_output_pin("A0")
+shield.set_output_pin(_channel)
 
 Knob.on_press(channel_select)     # Set up event handler for button press
 BuiltinLed = mcu.Led()
@@ -51,11 +51,11 @@ while True:
 
     EncoderCount = Knob.position()
     PotVoltage = shield.pot_volts()
-    RawSensor = shield.temperature_from_volts(shield.raw_sensor_volts())
+    RawTemp = shield.temperature_from_volts(shield.raw_sensor_volts())
     VBusVoltage = mcu.vbus_volts()
     SelectedChannel = 0 if _channel == "A0" else 3
 
-    print("Sensor:%.1f,Temp:%.1f,EncPosition:%d,Channel:%d,Pot:%.3f,Vbus:%.2f"
-          % (RawSensor, AmpTemperature, EncoderCount, SelectedChannel, PotVoltage, VBusVoltage))
+    print("RawTemp:%.1f,Temp:%.1f,EncPosition:%d,Channel:%d,Pot:%.3f,Vbus:%.2f"
+          % (RawTemp, AmpTemperature, EncoderCount, SelectedChannel, PotVoltage, VBusVoltage))
 
     time.sleep(0.25)
