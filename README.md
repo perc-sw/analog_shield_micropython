@@ -10,7 +10,7 @@
 A one-file MicroPython library for the [Analog Shield](https://github.com/perc-sw/analog_shield)
 on a [Phyduino Pico](https://github.com/perc-sw/phyduino_pico_micropython), used in the University
 of Toronto, Department of Physics,
-"[Introduction to Electronics](https://plrs.physics.utoronto.ca/course-listing/)" course.
+"[Introduction to Electronics](https://perc-sw.github.io/intro_to_electronics/)" course.
 
 ### Documentation: <https://perc-sw.github.io/analog_shield_micropython/>
 
